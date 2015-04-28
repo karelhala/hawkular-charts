@@ -13,6 +13,8 @@ declare module Charts {
     interface ITransformedAvailDataPoint {
         start: number;
         end: number;
+      startDate: Date;
+      endDate: Date;
         value: string;
         duration?: string;
         message?: string;
@@ -23,6 +25,8 @@ declare module Charts {
         value: string;
         duration: string;
         message: string;
+      startDate:Date;
+      endDate:Date;
         constructor(start: number, end: number, value: string, duration?: string, message?: string);
     }
     class AvailabilityChartDirective {

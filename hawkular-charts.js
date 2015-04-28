@@ -18,6 +18,9 @@ var Charts;
             this.value = value;
             this.duration = duration;
             this.message = message;
+          this.startDate = new Date(start);
+          this.endDate = new Date(end);
+          this.duration = moment(end).from(moment(start), true);
         }
         return TransformedAvailDataPoint;
     })();
@@ -95,15 +98,21 @@ var Charts;
                     var outputData = [];
                     if (inAvailData && inAvailData[0].timestamp) {
                         var previousItem;
+                      if (inAvailData.length == 1) {
+                        /// if we only have one datapoint, we make an interval with undefined start timestamp
+                        outputData.push(new TransformedAvailDataPoint(undefined, inAvailData[0].timestamp, inAvailData[0].value));
+                      }
+                      else {
                         _.each(inAvailData, function (availItem, i) {
-                            if (i > 0) {
-                                previousItem = inAvailData[i - 1];
-                                outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
-                            }
-                            else {
-                                outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
-                            }
+                          if (i == 0) {
+                          }
+                          else {
+                            console.log("other items....");
+                            outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
+                          }
+                          previousItem = availItem;
                         });
+                      }
                     }
                     return outputData;
                 }

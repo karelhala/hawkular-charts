@@ -25,6 +25,8 @@ module Charts {
   export interface ITransformedAvailDataPoint {
     start:number;
     end:number;
+    startDate: Date;
+    endDate: Date;
     value:string;
     duration?:string;
     message?:string;
@@ -32,12 +34,18 @@ module Charts {
 
   export class TransformedAvailDataPoint implements ITransformedAvailDataPoint {
 
+    public startDate:Date;
+    public endDate:Date;
+
     constructor(public start:number,
                 public end:number,
                 public value:string,
                 public duration?:string,
                 public message?:string) {
 
+      this.startDate = new Date(start);
+      this.endDate = new Date(end);
+      this.duration = moment(end).from(moment(start), true);
     }
 
   }
@@ -184,21 +192,23 @@ module Charts {
         if (inAvailData && inAvailData[0].timestamp) {
           var previousItem:IAvailDataPoint;
 
-          _.each(inAvailData, (availItem:IAvailDataPoint, i:number) => {
-            if (i > 0) {
-              previousItem = inAvailData[i - 1];
-              outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
-            } else {
-              outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
-              //if (inAvailData.length > 1) {
-              //  previousItem = inAvailData[i - 1];
-              //  outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
-              //} else {
-              //  outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
-              //}
-            }
+          if (inAvailData.length == 1) {
 
-          });
+            /// if we only have one datapoint, we make an interval with undefined start timestamp
+            outputData.push(new TransformedAvailDataPoint(undefined, inAvailData[0].timestamp, inAvailData[0].value));
+
+          } else {
+
+            _.each(inAvailData, (availItem:IAvailDataPoint, i:number) => {
+              if (i == 0) {
+                /// we are on fist item ignore, cant form an interval from one item
+              } else {
+                outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
+              }
+              previousItem = availItem;
+
+            });
+          }
         }
         return outputData;
       }
