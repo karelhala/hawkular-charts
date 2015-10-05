@@ -41,6 +41,7 @@ var config = {
         target: 'ES5',
         module: 'commonjs',
         declarationFiles: true,
+        removeComments: true,
         noExternalResolve: false
     })
 };

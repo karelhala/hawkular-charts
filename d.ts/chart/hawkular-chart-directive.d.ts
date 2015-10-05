@@ -5,9 +5,6 @@ declare namespace Charts {
     type UrlType = number;
     type MetricId = string;
     type MetricValue = number;
-    /**
-     * Metrics Response from Hawkular Metrics
-     */
     interface IMetricsResponseDataPoint {
         start: TimeInMillis;
         end: TimeInMillis;
@@ -27,9 +24,6 @@ declare namespace Charts {
         avg: MetricValue;
         empty: boolean;
     }
-    /**
-     * Representation of data ready to be consumed by charts.
-     */
     interface IChartDataPoint extends IBaseChartDataPoint {
         date?: Date;
         min: MetricValue;
@@ -37,9 +31,6 @@ declare namespace Charts {
         percentile95th: MetricValue;
         median: MetricValue;
     }
-    /**
-     * Data structure for a Multi-Metric chart. Composed of IChartDataDataPoint[].
-     */
     interface IMultiDataPoint {
         key: string;
         color?: string;

@@ -1,10 +1,3 @@
-/**
- * @name  hawkular-charts
- *
- * @description
- *   Base module for rhq-metrics-charts.
- *
- */
 angular.module('hawkular.charts', []);
 
 /// <reference path='../../vendor/vendor.d.ts' />
@@ -27,12 +20,6 @@ var Charts;
         return TransformedAvailDataPoint;
     })();
     Charts.TransformedAvailDataPoint = TransformedAvailDataPoint;
-    /**
-     * @ngdoc directive
-     * @name availability-chart
-     * @description A d3 based charting directive for charting availability.
-     *
-     */
     var _module = angular.module('hawkular.charts')
         .directive('availabilityChart', function () {
         return new Charts.AvailabilityChartDirective();
@@ -52,19 +39,15 @@ var Charts;
                 chartTitle: '@'
             };
             this.link = function (scope, element, attrs) {
-                // data specific vars
                 var dataPoints = [], startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
-                // chart specific vars
                 var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, brush, tip, timeScaleForBrush, chart, chartParent, svg;
                 function getChartWidth() {
-                    ///return angular.element('#' + chartContext.chartHandle).width();
                     return 760;
                 }
                 function buildAvailHover(d) {
                     return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>\n          <div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>" + d.duration + "</span></small> </div>";
                 }
                 function oneTimeChartSetup() {
-                    // destroy any previous charts
                     if (chart) {
                         chartParent.selectAll('*').remove();
                     }
@@ -99,7 +82,7 @@ var Charts;
                     startTimestamp = +attrs.startTimestamp || d3.min(dataPoints, function (d) { return d.start; }) || +moment().subtract(1, 'hour');
                     if (dataPoints) {
                         adjustedTimeRange[0] = startTimestamp;
-                        adjustedTimeRange[1] = +moment(); // TODO: Fix wehn we support end != now
+                        adjustedTimeRange[1] = +moment();
                         yScale = d3.scale.linear()
                             .clamp(true)
                             .rangeRound([70, 0])
@@ -144,9 +127,7 @@ var Charts;
                         var now = new Date().getTime();
                         if (itemCount === 1) {
                             var availItem = inAvailData[0];
-                            // we only have one item with start time. Assume unknown for the time before (last 1h) TODO adjust to time picker
                             outputData.push(new TransformedAvailDataPoint(now - 60 * 60 * 1000, availItem.timestamp, 'unknown'));
-                            // and the determined value up until the end.
                             outputData.push(new TransformedAvailDataPoint(availItem.timestamp, now, availItem.value));
                         }
                         else {
@@ -154,7 +135,6 @@ var Charts;
                             var i;
                             backwardsEndTime = now;
                             for (i = inAvailData.length; i > 0; i--) {
-                                // if we have data starting in the future... discard it
                                 if (inAvailData[i - 1].timestamp > +moment()) {
                                     continue;
                                 }
@@ -172,7 +152,6 @@ var Charts;
                     return outputData;
                 }
                 function createSideYAxisLabels() {
-                    ///@Todo: move out to stylesheet
                     svg.append('text')
                         .attr('class', 'availUpLabel')
                         .attr('x', -10)
@@ -208,25 +187,21 @@ var Charts;
                         .ticks(8)
                         .tickSize(13, 0)
                         .orient('top');
-                    // For each datapoint calculate the Y offset for the bar
-                    // Up or Unknown: offset 0, Down: offset 35
                     function calcBarY(d) {
                         return height - yScale(0) + ((isUp(d) || isUnknown(d)) ? 0 : 35);
                     }
-                    // For each datapoint calculate the Y removed height for the bar
-                    // Unknown: full height 15, Up or Down: half height, 50
                     function calcBarHeight(d) {
                         return yScale(0) - (isUnknown(d) ? 15 : 50);
                     }
                     function calcBarFill(d) {
                         if (isUp(d)) {
-                            return '#54A24E'; // green
+                            return '#54A24E';
                         }
                         else if (isUnknown(d)) {
-                            return 'url(#diagonal-stripes)'; // gray
+                            return 'url(#diagonal-stripes)';
                         }
                         else {
-                            return '#D85054'; // red
+                            return '#D85054';
                         }
                     }
                     svg.selectAll('rect.availBars')
@@ -253,7 +228,6 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
-                    // The bottom line of the availability chart
                     svg.append('line')
                         .attr("x1", 0).attr("y1", 70)
                         .attr("x2", 655).attr("y2", 70)
@@ -264,17 +238,9 @@ var Charts;
                 function createXandYAxes() {
                     var xAxisGroup;
                     svg.selectAll('g.axis').remove();
-                    // create x-axis
                     xAxisGroup = svg.append('g')
                         .attr('class', 'x axis')
                         .call(xAxis);
-                    //xAxisGroup.append('g')
-                    //  .attr('class', 'x brush')
-                    //  .call(brush)
-                    //  .selectAll('rect')
-                    //  .attr('y', -6)
-                    //  .attr('height', 30);
-                    // create y-axis
                     svg.append('g')
                         .attr('class', 'y axis')
                         .call(yAxis);
@@ -285,26 +251,15 @@ var Charts;
                         .on('brushstart', brushStart)
                         .on('brush', brushMove)
                         .on('brushend', brushEnd);
-                    //brushGroup = svg.append('g')
-                    //    .attr('class', 'brush')
-                    //    .call(brush);
-                    //
-                    //brushGroup.selectAll('.resize').append('path');
-                    //
-                    //brushGroup.selectAll('rect')
-                    //    .attr('height', height);
                     function brushStart() {
                         svg.classed('selecting', true);
                     }
                     function brushMove() {
-                        //useful for showing the daterange change dynamically while selecting
                         var extent = brush.extent();
-                        //scope.$emit('DateRangeMove', extent);
                     }
                     function brushEnd() {
                         var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime >= 60000;
                         svg.classed('selecting', !d3.event.target.empty());
-                        // ignore range selections less than 1 minute
                         if (dragSelectionDelta) {
                             scope.$emit('DateRangeChanged', extent);
                         }
@@ -328,7 +283,6 @@ var Charts;
                     console.group('Render Avail Chart');
                     if (dataPoints) {
                         console.time('availChartRender');
-                        ///NOTE: layering order is important!
                         oneTimeChartSetup();
                         determineAvailScale(dataPoints);
                         createXAxisBrush();
@@ -350,10 +304,6 @@ var Charts;
 (function (Charts) {
     'use strict';
     var debug = false;
-    /**
-     * Defines an individual alert bounds  to be visually highlighted in a chart
-     * that an alert was above/below a threshold.
-     */
     var AlertBound = (function () {
         function AlertBound(startTimestamp, endTimestamp, alertValue) {
             this.startTimestamp = startTimestamp;
@@ -364,21 +314,12 @@ var Charts;
         }
         return AlertBound;
     })();
-    /**
-     * @ngdoc directive
-     * @name hawkularChart
-     * @description A d3 based charting direction to provide charting using various styles of charts.
-     *
-     */
     angular.module('hawkular.charts')
         .directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log',
         function ($rootScope, $http, $interval, $log) {
-            /// only for the stand alone charts
             var BASE_URL = '/hawkular/metrics';
             function link(scope, element, attrs) {
-                // data specific vars
                 var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
-                // chart specific vars
                 var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
                 dataPoints = attrs.data;
                 showDataPoints = attrs.showDataPoints;
@@ -391,14 +332,12 @@ var Charts;
                     return timeScale(d.timestamp) + (calcBarWidth() / 2);
                 }
                 function getChartWidth() {
-                    //return angular.element('#' + chartContext.chartHandle).width();
                     return 760;
                 }
                 function useSmallCharts() {
                     return getChartWidth() <= smallChartThresholdInPixels;
                 }
                 function initialization() {
-                    // destroy any previous charts
                     if (chart) {
                         chartParent.selectAll('*').remove();
                     }
@@ -462,7 +401,6 @@ var Charts;
                 function determineScale(dataPoints) {
                     var xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;
                     if (dataPoints.length > 0) {
-                        // if window is too small server up small chart
                         if (useSmallCharts()) {
                             width = 250;
                             xTicks = 3;
@@ -470,7 +408,6 @@ var Charts;
                             chartData = dataPoints.slice(dataPoints.length - numberOfBarsForSmallGraph, dataPoints.length);
                         }
                         else {
-                            //  we use the width already defined above
                             xTicks = 9;
                             xTickSubDivide = 5;
                             chartData = dataPoints;
@@ -581,20 +518,11 @@ var Charts;
                             .orient('bottom');
                     }
                 }
-                /**
-                 * Load metrics data directly from a running Hawkular-Metrics server
-                 * @param url
-                 * @param metricId
-                 * @param startTimestamp
-                 * @param endTimestamp
-                 * @param buckets
-                 */
                 function loadStandAloneMetricsForTimeRange(url, metricId, startTimestamp, endTimestamp, buckets) {
                     ///$log.debug('-- Retrieving metrics data for urlData: ' + metricId);
                     ///$log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
                     ///$log.debug('-- TenantId: ' + metricTenantId);
                     if (buckets === void 0) { buckets = 60; }
-                    //let numBuckets = buckets || 60;
                     var requestConfig = {
                         headers: {
                             'Hawkular-Tenant': metricTenantId
@@ -610,26 +538,15 @@ var Charts;
                     }
                     if (url && metricType && metricId) {
                         var metricTypeAndData = metricType.split('-');
-                        /// sample url:
-                        /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?
-                        // buckets=120&end=1436831797533&start=1436828197533'
                         $http.get(url + '/' + metricTypeAndData[0] + 's/' + metricId + '/' + (metricTypeAndData[1] || 'data'), requestConfig).success(function (response) {
                             processedNewData = formatBucketedChartOutput(response);
-                            ///console.info('DataPoints from standalone URL: ');
-                            ///console.table(processedNewData);
                             scope.render(processedNewData, processedPreviousRangeData);
                         }).error(function (reason, status) {
                             $log.error('Error Loading Chart Data:' + status + ', ' + reason);
                         });
                     }
                 }
-                /**
-                 * Transform the raw http response from Metrics to one usable in charts
-                 * @param response
-                 * @returns transformed response to IChartDataPoint[], ready to be charted
-                 */
                 function formatBucketedChartOutput(response) {
-                    //  The schema is different for bucketed output
                     if (response) {
                         return response.map(function (point) {
                             var timestamp = point.timestamp || (point.start + (point.end - point.start) / 2);
@@ -645,19 +562,9 @@ var Charts;
                         });
                     }
                 }
-                /**
-                 * An empty value overrides any other values.
-                 * @param d
-                 * @returns {boolean|any|function(): JQueryCallback|function(): JQuery|function(): void|function(): boolean}
-                 */
                 function isEmptyDataBar(d) {
                     return d.empty;
                 }
-                /**
-                 * Raw metrics have a 'value' set instead of avg/min/max of aggregates
-                 * @param d
-                 * @returns {boolean}
-                 */
                 function isRawMetric(d) {
                     return typeof d.avg === 'undefined';
                 }
@@ -668,16 +575,13 @@ var Charts;
                         barDuration = moment(currentTimestamp).from(moment(prevTimestamp), true);
                     }
                     if (isEmptyDataBar(d)) {
-                        // nodata
                         hover = "<div class='chartHover'><small class='chartHoverLabel'>" + noDataLabel + "</small>\n                <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                <hr/>\n                <div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div></div>";
                     }
                     else {
                         if (isRawMetric(d)) {
-                            // raw single value from raw table
                             hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                  <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                  <hr/>\n                  <div><small><span class='chartHoverLabel'>" + singleValueLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.value).format('0,0.0') + "</span></small> </div></div> ";
                         }
                         else {
-                            // aggregate with min/avg/max
                             hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                  <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                  <hr/>\n                  <div><small><span class='chartHoverLabel'>" + maxLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.max).format('0,0.0') + "</span></small> </div>\n                  <div><small><span class='chartHoverLabel'>" + avgLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.avg).format('0,0.0') + "</span></small> </div>\n                  <div><small><span class='chartHoverLabel'>" + minLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.min).format('0,0.0') + "</span></small> </div></div> ";
                         }
                     }
@@ -730,7 +634,6 @@ var Charts;
                         .append('path').attr('d', 'M 0 0 6 0');
                 }
                 function createStackedBars(lowBound, highBound) {
-                    // The gray bars at the bottom leading up
                     svg.selectAll('rect.leaderBar')
                         .data(chartData)
                         .enter().append('rect')
@@ -770,7 +673,6 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
-                    // upper portion representing avg to high
                     svg.selectAll('rect.high')
                         .data(chartData)
                         .enter().append('rect')
@@ -801,7 +703,6 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
-                    // lower portion representing avg to low
                     svg.selectAll('rect.low')
                         .data(chartData)
                         .enter().append('rect')
@@ -832,7 +733,6 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
-                    // if high == low put a 'cap' on the bar to show raw value, non-aggregated bar
                     svg.selectAll('rect.singleValue')
                         .data(chartData)
                         .enter().append('rect')
@@ -877,7 +777,6 @@ var Charts;
                     });
                 }
                 function createCandleStickChart() {
-                    // upper portion representing avg to high
                     svg.selectAll('rect.candlestick.up')
                         .data(chartData)
                         .enter().append('rect')
@@ -907,7 +806,6 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
-                    // lower portion representing avg to low
                     svg.selectAll('rect.candlestick.down')
                         .data(chartData)
                         .enter().append('rect')
@@ -954,7 +852,6 @@ var Charts;
                 }
                 function createHistogramChart() {
                     var strokeOpacity = '0.6';
-                    // upper portion representing avg to high
                     svg.selectAll('rect.histogram')
                         .data(chartData)
                         .enter().append('rect')
@@ -1115,7 +1012,6 @@ var Charts;
                         .y(function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
-                    // Bar avg line
                     svg.append('path')
                         .datum(chartData)
                         .attr('class', 'avgLine')
@@ -1384,7 +1280,6 @@ var Charts;
                     });
                 }
                 function createYAxisGridLines() {
-                    // create the y axis grid lines
                     if (yScale) {
                         svg.append('g').classed('grid y_grid', true)
                             .call(d3.svg.axis()
@@ -1399,7 +1294,6 @@ var Charts;
                     var xAxisGroup;
                     if (yAxis) {
                         svg.selectAll('g.axis').remove();
-                        // create x-axis
                         xAxisGroup = svg.append('g')
                             .attr('class', 'x axis')
                             .attr('transform', 'translate(0,' + height + ')')
@@ -1410,7 +1304,6 @@ var Charts;
                             .selectAll('rect')
                             .attr('y', -6)
                             .attr('height', 30);
-                        // create y-axis
                         svg.append('g')
                             .attr('class', 'y axis')
                             .call(yAxis)
@@ -1513,7 +1406,6 @@ var Charts;
                                 }
                             }
                         });
-                        /// means the last piece data is all above threshold, use last data point
                         if (alertBoundAreaItems.length === (startPoints.length - 1)) {
                             alertBoundAreaItems.push(new AlertBound(chartData[startPoints[startPoints.length - 1]].timestamp, chartData[chartData.length - 1].timestamp, threshold));
                         }
@@ -1535,9 +1427,7 @@ var Charts;
                         return yScale(highBound);
                     })
                         .attr('height', function (d) {
-                        ///@todo: make the height adjustable
                         return 185;
-                        //return yScale(0) - height;
                     })
                         .attr('width', function (d) {
                         return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
@@ -1549,26 +1439,16 @@ var Charts;
                         .on('brushstart', brushStart)
                         .on('brush', brushMove)
                         .on('brushend', brushEnd);
-                    //brushGroup = svg.append('g')
-                    //    .attr('class', 'brush')
-                    //    .call(brush);
-                    //
-                    //brushGroup.selectAll('.resize').append('path');
-                    //
-                    //brushGroup.selectAll('rect')
-                    //    .attr('height', height);
                     function brushStart() {
                         svg.classed('selecting', true);
                     }
                     function brushMove() {
-                        //useful for showing the daterange change dynamically while selecting
                         var extent = brush.extent();
                         scope.$emit('DateRangeMove', extent);
                     }
                     function brushEnd() {
                         var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime >= 60000;
                         svg.classed('selecting', !d3.event.target.empty());
-                        // ignore range selections less than 1 minute
                         if (dragSelectionDelta) {
                             scope.$emit('DateRangeChanged', extent);
                         }
@@ -1650,14 +1530,12 @@ var Charts;
                 }
                 scope.$watch('data', function (newData) {
                     if (newData) {
-                        ///$log.debug('Chart Data Changed');
                         processedNewData = angular.fromJson(newData);
                         scope.render(processedNewData, processedPreviousRangeData);
                     }
                 }, true);
                 scope.$watch('multiData', function (newMultiData) {
                     if (newMultiData) {
-                        ///$log.debug('MultiData Chart Data Changed');
                         multiDataPoints = angular.fromJson(newMultiData);
                         scope.render(processedNewData, processedPreviousRangeData);
                     }
@@ -1687,7 +1565,6 @@ var Charts;
                         multiChartOverlayData = angular.fromJson(newMultiChartData);
                     }
                     else {
-                        // same event is sent with no data to clear it
                         multiChartOverlayData = [];
                     }
                     scope.render(processedNewData, processedPreviousRangeData);
@@ -1705,9 +1582,7 @@ var Charts;
                     startTimestamp = moment().subtract(timeRangeInSeconds, 'seconds').valueOf();
                     loadStandAloneMetricsForTimeRange(dataUrl, metricId, startTimestamp, endTimestamp, 60);
                 }
-                /// standalone charts attributes
                 scope.$watchGroup(['metricUrl', 'metricId', 'metricType', 'metricTenantId', 'timeRangeInSeconds'], function (standAloneParams) {
-                    ///$log.debug('standalone params has changed');
                     dataUrl = standAloneParams[0] || dataUrl;
                     metricId = standAloneParams[1] || metricId;
                     metricType = standAloneParams[2] || metricId;
@@ -1766,7 +1641,6 @@ var Charts;
                 scope.render = function (dataPoints, previousRangeDataPoints) {
                     debug && console.group('Render Chart');
                     debug && console.time('chartRender');
-                    //NOTE: layering order is important!
                     initialization();
                     if (dataPoints) {
                         determineScale(dataPoints);
@@ -1774,12 +1648,10 @@ var Charts;
                     if (multiDataPoints) {
                         determineMultiScale(multiDataPoints);
                     }
-                    ///createHeader(attrs.chartTitle);
                     createXAxisBrush();
                     if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                         createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
                     }
-                    ///createYAxisGridLines();
                     determineChartType(chartType);
                     if (showDataPoints) {
                         createDataPoints(chartData);
@@ -1791,7 +1663,6 @@ var Charts;
                         createAvgLines();
                     }
                     if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
-                        /// NOTE: this alert line has higher precedence from alert area above
                         createAlertLine(alertValue);
                     }
                     if (annotationData) {
